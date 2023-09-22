@@ -12,7 +12,7 @@ class AlbumForm(forms.ModelForm):
 
     class Meta:
         model = Album
-        fields = ['band', 'title', 'logo']
+        fields = ['band', 'title', 'logo', 'release_date']
 
 
 class SongForm(forms.ModelForm):

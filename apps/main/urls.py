@@ -7,7 +7,8 @@ from .views import (
     DeleteView,
     DetailView,
     FavoriteView,
-    IndexView
+    IndexView,
+    create_album
 )
 
 
@@ -32,5 +33,10 @@ urlpatterns = [
         '<int:album_id>/delete_song/<int:song_id>/',
         DeleteView.as_view(),
         name='delete_song'
+    ),
+    path(
+        'create_album/',
+        create_album,
+        name='create_album'
     ),
 ]

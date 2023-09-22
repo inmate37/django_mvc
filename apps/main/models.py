@@ -116,6 +116,24 @@ class Artist(AbsctractDateTime):
         return f'Музыкант: {self.nickname}'
 
 
+class AlbumQuerySet(models.QuerySet):
+
+    def not_deleted(self):
+        return self.filter(is_deleted=False)
+
+
+class AlbumManager(models.Manager):
+
+    def get_queryset(self) -> models.query.QuerySet['Album']:
+        return AlbumQuerySet(
+            self.model,
+            using=self._db
+        )
+
+    def not_deleted(self):
+        return self.get_queryset().not_deleted()
+
+
 class Album(models.Model):
     """
     Album model.
@@ -127,8 +145,8 @@ class Album(models.Model):
     STATUSES = (
         (REGULAR, 'Обычный'),
         (SILVER, 'Серебряный'),
-        (GOLD , 'Золотой'),
-        (PLATINUM , 'Платиновый'),
+        (GOLD, 'Золотой'),
+        (PLATINUM, 'Платиновый'),
     )
     band = models.ForeignKey(
         to=Band,
@@ -154,9 +172,19 @@ class Album(models.Model):
         default=REGULAR,
         verbose_name='статус'
     )
+    is_deleted = models.BooleanField(
+        verbose_name='удален',
+        default=False
+    )
+    objects = AlbumManager()
 
     def __str__(self) -> str:
         return f'{self.band}: {self.title} ({self.status})'
+
+    @property
+    def file_type(self):
+        LAST: int = -1
+        return self.logo.url.split('.')[LAST]
 
     class Meta:
         ordering = ('release_date',)

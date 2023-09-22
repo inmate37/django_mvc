@@ -31,9 +31,10 @@ class IndexView(View):
     template_name = 'main/index.html'
 
     def get_context_data(self, **kwargs: Any) -> dict[str, QuerySet[Any]]:
-
-        albums: QuerySet[Album] = Album.objects.all()
-        context: dict[str, QuerySet[Any]] = {'albums': albums}
+        albums: QuerySet[Album] = Album.objects.not_deleted()
+        context: dict[str, QuerySet[Any]] = {
+            'albums': albums
+        }
         return context
 
     def get(
@@ -199,7 +200,6 @@ class CreateSongView(View):
                     'error_message': 'Неверный формат аудио-файла'
                 }
             )
-
         song.save()
         return render(
             request,
@@ -229,3 +229,43 @@ class FavoriteView(View):
             return JsonResponse({'success': False})
 
         return JsonResponse({'success': True})
+
+
+
+def create_album(request):
+    IMAGE_FILE_TYPES = (
+        'png',
+        'jpg',
+        'jpeg'
+    )
+    form = AlbumForm(
+        request.POST or None,
+        request.FILES or None
+    )
+    if not form.is_valid():
+        return render(
+            request,
+            'main/create_album.html',
+            {'form': form}
+        )
+    album = form.save(commit=False)
+    album.logo = request.FILES['logo']
+    file_type = album.file_type
+    file_type = file_type.lower()
+
+    if file_type not in IMAGE_FILE_TYPES:
+        return render(
+            request,
+            'main/create_album.html',
+            {
+                'album': album,
+                'form': form,
+                'error_message': 'Image file must be PNG, JPG, or JPEG',
+            }
+        )
+    album.save()
+    return render(
+        request,
+        'main/detail.html',
+        {'album': album}
+    )
